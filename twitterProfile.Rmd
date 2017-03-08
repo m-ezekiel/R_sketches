@@ -7,8 +7,8 @@ output: html_document
 
 ```{r, echo=FALSE, message=FALSE}
 # Source files
-source('/Functions/twitterConfig.R')
-source('/Functions/userTimeline_stats_fXn.R')
+source('Functions/twitterConfig.R')
+source('Functions/userTimeline_stats_fXn.R')
 ```
 
 ```{r, echo=FALSE}
