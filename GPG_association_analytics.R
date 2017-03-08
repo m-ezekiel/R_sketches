@@ -7,9 +7,10 @@ library(arules)
 library(arulesViz)
 
 # Import data
-gpg_data <- read.table("2017-3-4-16-52-8_gamepadKeys.txt", sep = "\t", header = TRUE)
-leftJoy <- abs(joy1_int) > 10
-rightJoy <- abs(joy2_int) > 10
+gpg_data <- read.table("2017-3-6-12-41-48_gamepadKeys.txt", sep = "\t", header = TRUE)
+# Set threshold above 10 because leftJoy idles between 0 and ~6-10 (device error)
+leftJoy <- abs(joy1_int) > 6
+rightJoy <- abs(joy2_int) > 0
 attach(gpg_data)
 names(gpg_data)
 
@@ -23,10 +24,10 @@ hist(red, col = "red")
 hist(green, col = "green")
 hist(blue, col = "blue")
 
-#support
+# Support
 itemFrequency(trans)
 
-# frequent n-itemsets
-itemsets2 <- apriori(trans, parameter = list(minlen = 1, maxlen = 5, support = 0.002, target="frequent itemsets"))
+# Frequent n-itemsets
+itemsets2 <- apriori(trans, parameter = list(minlen = 2, maxlen = 5, support = 0.00001, target="frequent itemsets"))
 summary(itemsets2)
 inspect(head(sort(itemsets2, by = "support"), 20))
