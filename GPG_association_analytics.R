@@ -2,12 +2,11 @@
 # Created: 2017-03-07
 
 # Initialize libraries
-setwd("~/Documents/R_sketches/")
 library(arules)
 library(arulesViz)
 
 # Import data
-gpg_data <- read.table("2017-3-6-12-41-48_gamepadKeys.txt", sep = "\t", header = TRUE)
+gpg_data <- read.table("Data/AF-7958_17.3.5_19-38-32.txt", sep = "\t", header = TRUE)
 # Set threshold above 10 because leftJoy idles between 0 and ~6-10 (device error)
 leftJoy <- abs(joy1_int) > 6
 rightJoy <- abs(joy2_int) > 0
