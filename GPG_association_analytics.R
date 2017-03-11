@@ -15,6 +15,7 @@ names(gpg_data)
 
 # Convert keypresses to transactions
 buttons <- data.frame(blue = as.logical(A1), green = as.logical(A2), red = as.logical(A3), opacity = as.logical(A4), disp = as.logical(L1), size = as.logical(R1), random = as.logical(L2), mute = as.logical(R2), select1 = as.logical(S1), select2 = as.logical(S2), up = as.logical(up), down = as.logical(down), left = as.logical(left), right = as.logical(right), leftJoy = as.logical(leftJoy), rightJoy = as.logical(rightJoy))
+
 trans <- as(buttons, "transactions")
 summary(trans)
 
