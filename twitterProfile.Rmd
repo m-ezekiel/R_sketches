@@ -13,7 +13,7 @@ source('Functions/userTimeline_stats_fXn.R')
 
 ```{r, echo=FALSE}
 # Setup
-user <- "suzi_ross"
+user <- "baltaFM"
 n <- 100
 ```
 
