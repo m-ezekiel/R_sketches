@@ -84,17 +84,60 @@ length(unique(lastfm$artist))
 ## Select records 200 and 201 and get info.
 lastfm[200:201, ]
 
-## Make an incidence matrix: user X artist
+## Make an incidence matrix: user by artist
+
+# Convert integer column to factors to isolate unique users
 lastfm$user <- as.factor(lastfm$user)
-incMatrix <- table(lastfm$user, lastfm$artist)
-dim(incMatrix)
+
+playlist <- split(x = lastfm[ , "artist"], f = lastfm$user)
+playlist <- lapply(playlist, unique)
+
+# The 1st two listeners listen to the following bands:
+playlist[1:2];
+
+# Convert playlist to a tansactions object
+playlist.trans <- as(playlist,"transactions")
 
 ## Use itemFrequency() to list the support.
-## Present a horizontal barplot
-## Report the quartiles of item relative frequency.
-## Find some rules.
-## Inspect the rules.
-## Explain their meaning.
+# Support of (A and B) = proportion of transactions in the dataset that contain both A and B
+# Note that semantic order matters so A = antecedent, B = consequent.
+# Top 5 bands: Radiohead, The Beatles, Coldplay, RHCP, Muse
+tail(sort(itemFrequency(playlist.trans)), 5)
+
+## Present a horizontal barplot for bands with support >= .10 (10% of users)
+itemFrequencyPlot(playlist.trans, support = 0.10, horiz = TRUE, las = 1, col = "lightblue",
+                  main = "Bands that are popular with \nat least 10% of lastfm users")
+
+## Report the quartiles of item relative frequency (support): {.00880, .01267, .02187}
+pl.summaryTable <- summary(itemFrequency(playlist.trans))
+pl.Q1 <- as.numeric(pl.summaryTable[2])
+pl.median <- as.numeric(pl.summaryTable[3])
+pl.Q3 <- as.numeric(pl.summaryTable[5])
+
+## Find rules w/support > upperQuantile and confidence >= .40
+# Confidence that an occurence of A will also contain B is conditional probability: 
+# prob(B|A) = p(A and B) / p(A)
+rules <- apriori(playlist.trans, parameter=list(minlen=1, support=pl.Q3, confidence = 0.40, target="rules"))
+summary(rules) # 24 rules
+
+
+## Inspect the rules
+# Lift = Confidence / Expected_confidence
+# Expected_confidence = proportion of total transactions containing the consequent (B)
+inspect(rules)
+
+## Select the 5 rules with the highest lift
+highLiftRules <- head(sort(rules, by="lift"), 5)
+inspect(highLiftRules)
+
+## Select the rule with the highest confidence. 
+highConfidenceRule <- sort(highLiftRules, by="confidence")[1]
+inspect(highConfidenceRule)
+
+## Specify values for support, confidence and lift. Explain their meaning.
+# support = 0.02226; 2.226 % of users listen to both Keane and Coldplay.
+# confidence = 0.6374; The probability that a fan of Keane will also listen to Coldplay is 0.6374.
+# lift = 4.0206; Users who listen to Keane are 4 times more likely to listen to Coldplay compared to customers from the entire data set.
 
 
 # 3.2 Classification
