@@ -1,7 +1,49 @@
 
-
 # 1. Text Mining
-# Retrieve data; remove stopwords, punct, convert to TDM; plot frequencies; apply algo;
+library(tm)
+library(SnowballC)
+library(wordcloud)
+source("Functions/wordVector_fxn.R")
+
+## Retrieve data, remove stopwords and punctuation
+docs <- Corpus(DirSource("Data/Platforms2016/"))
+docs
+
+getTransformations()
+
+# Remove punctuation, convert the corpus to lower case, remove all numbers.
+# Transform to lower case (need to wrap in content_transformer)
+docs <- tm_map(docs, removePunctuation)
+docs <- tm_map(docs,content_transformer(tolower))
+docs <- tm_map(docs, removeNumbers)
+
+# Remove stopwords using the standard list in tm, strip whitespace
+docs <- tm_map(docs, removeWords, stopwords("english"))
+myStops <- c("also")
+docs <- tm_map(docs, removeWords, myStops)
+docs <- tm_map(docs, stripWhitespace)
+
+# Creation of the document term matrix  (DTM)– a matrix that lists all occurrences of words in the corpus, by document.
+dtm <- DocumentTermMatrix(docs)
+
+# inspect() takes input DTM[document_index, word_index]
+inspect(dtm)
+inspect(dtm[1, ])  # Democratic Platform 
+inspect(dtm[2, ])  # Republican Platform
+
+## Plot 30 words with highest frequencies
+sortedWordFreqs <- sort(colSums(as.matrix(dtm)))
+swf_len <- length(sortedWordFreqs)
+top30 <- sortedWordFreqs[(swf_len-29):swf_len]
+barplot(top30, horiz = TRUE, las = 1, col = "lightblue", 
+        xlab = "Term Frequencies",
+        main = "Top 30 Words from 2016 Democratic \nand Republican Platforms")
+
+## Construct a wordcloud
+set.seed(1)
+wordcloud(names(sortedWordFreqs), sortedWordFreqs, min.freq=70, colors=brewer.pal(6,"Dark2"))
+
+## Construct a network graph
 
 
 # 2. Linear Regression
