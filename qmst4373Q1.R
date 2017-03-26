@@ -5,56 +5,103 @@ library(SnowballC)
 library(wordcloud)
 library(igraph)
 library(topicmodels)
-library(purrr)
 
 ## Retrieve data, remove stopwords and punctuation
 docs <- Corpus(DirSource("Data/Aristotle_corpus/"))
 docs
 
-# Remove punctuation, convert the corpus to lower case, remove all numbers.
-# Transform to lower case (need to wrap in content_transformer)
+# Create the toSpace content transformer, remove non-standard punctuation
+toSpace <- content_transformer(function(x, pattern) {return (gsub(pattern, " ", x))})
+docs <- tm_map(docs, toSpace, "-")
+docs <- tm_map(docs, toSpace, ":")
+docs <- tm_map(docs, toSpace, "'")
+docs <- tm_map(docs, toSpace, "'")
+docs <- tm_map(docs, toSpace, " -")
+
+# Remove punctuation, numbers, whitespace, transform to lowercase
 docs <- tm_map(docs, removePunctuation)
-docs <- tm_map(docs,content_transformer(tolower))
 docs <- tm_map(docs, removeNumbers)
-
-# Remove stopwords using the standard list in tm, strip whitespace
-docs <- tm_map(docs, removeWords, stopwords("english"))
-docs <- tm_map(docs, removeWords, myStops)
 docs <- tm_map(docs, stripWhitespace)
+docs <- tm_map(docs,content_transformer(tolower))
 
-# Creation of the document term matrix  (DTM)– a matrix that lists all occurrences of words in the corpus, by document.
-dtm <- DocumentTermMatrix(docs)
+# Stemming (useful but potentially opaque)
+#docs <- tm_map(docs,stemDocument)
 
+# Lemmalization
+docs <- tm_map(docs, content_transformer(gsub), pattern = "things", replacement = "thing")
+docs <- tm_map(docs, content_transformer(gsub), pattern = "parts", replacement = "part")
+docs <- tm_map(docs, content_transformer(gsub), pattern = "animals", replacement = "animal")
+docs <- tm_map(docs, content_transformer(gsub), pattern = "belongs", replacement = "belong")
+
+
+# Remove stopwords using the standard list in tm
+docs <- tm_map(docs, removeWords, stopwords("english"))
+
+# Remove corpus specific stopwords
+myStops <- c("also", "thing", "will", "must", "like", "first", "part", "since", "therefore", "thus", "case", "either", "neither", "something", "said", "even", "many", "whether", "just", "without", "though", "another", "every", "well", "come")
+docs <- tm_map(docs, removeWords, myStops)
+
+# Create the document term matrix
 # inspect() takes input DTM[document_index, word_index]
+dtm <- DocumentTermMatrix(docs)
 inspect(dtm)
 
+# Enforce word length and document bounds
+dtmr <-DocumentTermMatrix(docs, control=list(wordLengths=c(4, 20), bounds = list(global = c(3,28))))
+dtmr
+
 ## Plot 30 words with highest frequencies
-sortedWordFreqs <- sort(colSums(as.matrix(dtm)))
-swf_len <- length(sortedWordFreqs)
-top30 <- sortedWordFreqs[(swf_len-29):swf_len]
+freqs <- sort(colSums(as.matrix(dtmr)))
+swf_len <- length(freqs)
+top30 <- freqs[(swf_len-29):swf_len]
 barplot(top30, horiz = TRUE, las = 1, col = "lightblue", 
         xlab = "Term Frequencies",
         main = "Main title")
 
 ## Construct a wordcloud (requires pckg "wordcloud")
 set.seed(1)
-wordcloud(names(sortedWordFreqs), sortedWordFreqs, min.freq=70, colors=brewer.pal(6,"Dark2"))
-
-# Enforce lower and upper limit word length (between 4 and 20 characters) and document bounds > 3.
-dtmr <-DocumentTermMatrix(docs, control=list(wordLengths=c(4, 20), bounds = list(global = c(3,28))))
-dtmr
-
-sort(colSums(as.matrix(dtmr)))
-findAssocs(dtmr, "animal", 0.8)
+wordcloud(names(freqs), freqs, min.freq=750, colors=brewer.pal(6,"Dark2"))
 
 
 ## Construct a network graph (requires pckg "igraph")
-# termMatrix <- sortedWordFreqs%*%t(sortedWordFreqs)
+# termMatrix <- freqs%*%t(freqs)
 # Network graph code keeps crashing R, no clue why. I will come back to this.
 
 ## Apply cluster analysis, LDA, and/or sentiment analysis
-x <- findAssocs(tdm, terms = "abortion", corlimit = 0)
-x$abortion
+
+## Topic Modeling / LDA
+library(topicmodels)
+# burnin <- 4000 # number of omitted Gibbs iterations at beginning, by default equals 0
+# iter <- 2000 # number of Gibbs iterations, by default equals 2000
+# thin <- 500 # number of omitted in-between Gibbs iterations, by default equals iter
+# seed <-list(2003,5,63,100001,765) # default is NA
+# best <- TRUE # if TRUE only the model with the maximum (posterior) likelihood is returned
+# nstart <- 5 # Number of repeated random starts
+k <- 5 # Number of topics
+
+# Run LDA using Gibbs sampling
+ldaOut <-LDA(dtmr, k, method="Gibbs")
+
+# Results
+topics(ldaOut)
+terms(ldaOut, 10)
+
+# probabilities associated with each topic assignment
+# rows are documents, columns are topics
+topicProbabilities <- as.data.frame(ldaOut@gamma)
+write.csv(topicProbabilities,file=paste("LDAGibbs",k,"TopicProbabilities.csv"))
+topicProbabilities
+
+#Find relative importance of top 2 topics
+topic1ToTopic2 <- lapply(1:nrow(dtm),function(x)
+  sort(topicProbabilities[x,])[k]/sort(topicProbabilities[x,])[k-1])
+
+
+#Find relative importance of second and third most important topics
+topic2ToTopic3 <- lapply(1:nrow(dtm),function(x)
+  sort(topicProbabilities[x,])[k-1]/sort(topicProbabilities[x,])[k-2])
+
+
 
 ### 2. Linear Regression
 
