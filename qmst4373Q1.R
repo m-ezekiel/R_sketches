@@ -32,6 +32,9 @@ docs <- tm_map(docs, content_transformer(gsub), pattern = "things", replacement 
 docs <- tm_map(docs, content_transformer(gsub), pattern = "parts", replacement = "part")
 docs <- tm_map(docs, content_transformer(gsub), pattern = "animals", replacement = "animal")
 docs <- tm_map(docs, content_transformer(gsub), pattern = "belongs", replacement = "belong")
+docs <- tm_map(docs, content_transformer(gsub), pattern = "pleasures", replacement = "pleasure")
+docs <- tm_map(docs, content_transformer(gsub), pattern = "states", replacement = "state")
+docs <- tm_map(docs, content_transformer(gsub), pattern = "citizens", replacement = "citizen")
 
 
 # Remove stopwords using the standard list in tm
@@ -59,13 +62,25 @@ barplot(top30, horiz = TRUE, las = 1, col = "lightblue",
         main = "Main title")
 
 ## Construct a wordcloud (requires pckg "wordcloud")
-set.seed(1)
 wordcloud(names(freqs), freqs, min.freq=750, colors=brewer.pal(6,"Dark2"))
 
 
 ## Construct a network graph (requires pckg "igraph")
-# termMatrix <- freqs%*%t(freqs)
-# Network graph code keeps crashing R, no clue why. I will come back to this.
+
+# Create term adjacency matrix
+docsTDM <- TermDocumentMatrix(docs)
+docsTDM.RS <- removeSparseTerms(docsTDM, 0.5)
+tdMatrix <- as.matrix(docsTDM.RS)
+tdMatrix[tdMatrix >= 1] <- 1
+termMatrix<-tdMatrix%*%t(tdMatrix)
+termMatrix
+
+# # This looks insanely clutterd
+# g <- graph.adjacency(termMatrix, weighted=T, mode="undirected")
+# simplify(graph, remove.multiple = TRUE, remove.loops = TRUE)
+# g <- simplify(g)
+# plot(g)
+
 
 ## Apply LDA, cluster analysis, and/or sentiment analysis
 
@@ -94,6 +109,29 @@ relativeImportance_1st <- lapply(1:nrow(dtm),function(x)
 relativeImportance_2nd <- lapply(1:nrow(dtm),function(x)
   sort(topicProbabilities[x,])[k-1]/sort(topicProbabilities[x,])[k-2])
 
+
+## Cluster Analysis
+
+# Review LDA term clusters
+terms_LDA <- terms(ldaOut, 10)
+
+# Create list of term clusters at given correlation threshold
+correlation_threshold <- 0.9
+findAssocs(dtmr, terms_LDA[ , 1], rep(correlation_threshold, dim(terms_LDA)[1]))
+term_clusters <- list()
+
+for (i in 1:dim(terms_LDA)[2]) {
+  term_clusters[[i]] <- findAssocs(dtmr, terms_LDA[ , i], rep(correlation_threshold, dim(terms_LDA)[1]))
+}
+
+# Word associations of the form "topic > term > associations" for k topics and j terms
+str(term_clusters)
+term_clusters
+
+
+## Sentiment Analysis
+library(tidytext)
+sentiments
 
 
 ### 2. Linear Regression
