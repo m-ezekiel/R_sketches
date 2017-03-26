@@ -6,13 +6,10 @@ library(wordcloud)
 library(igraph)
 library(topicmodels)
 library(purrr)
-source("Functions/wordVector_fxn.R")
 
 ## Retrieve data, remove stopwords and punctuation
-docs <- Corpus(DirSource("Data/Platforms2016/"))
+docs <- Corpus(DirSource("Data/Aristotle_corpus/"))
 docs
-
-getTransformations()
 
 # Remove punctuation, convert the corpus to lower case, remove all numbers.
 # Transform to lower case (need to wrap in content_transformer)
@@ -22,7 +19,6 @@ docs <- tm_map(docs, removeNumbers)
 
 # Remove stopwords using the standard list in tm, strip whitespace
 docs <- tm_map(docs, removeWords, stopwords("english"))
-myStops <- c("also")
 docs <- tm_map(docs, removeWords, myStops)
 docs <- tm_map(docs, stripWhitespace)
 
@@ -31,8 +27,6 @@ dtm <- DocumentTermMatrix(docs)
 
 # inspect() takes input DTM[document_index, word_index]
 inspect(dtm)
-inspect(dtm[1, ])  # Democratic Platform 
-inspect(dtm[2, ])  # Republican Platform
 
 ## Plot 30 words with highest frequencies
 sortedWordFreqs <- sort(colSums(as.matrix(dtm)))
@@ -40,28 +34,45 @@ swf_len <- length(sortedWordFreqs)
 top30 <- sortedWordFreqs[(swf_len-29):swf_len]
 barplot(top30, horiz = TRUE, las = 1, col = "lightblue", 
         xlab = "Term Frequencies",
-        main = "Top 30 Words from 2016 Democratic \nand Republican Platforms")
+        main = "Main title")
 
 ## Construct a wordcloud (requires pckg "wordcloud")
 set.seed(1)
 wordcloud(names(sortedWordFreqs), sortedWordFreqs, min.freq=70, colors=brewer.pal(6,"Dark2"))
+
+# Enforce lower and upper limit word length (between 4 and 20 characters) and document bounds > 3.
+dtmr <-DocumentTermMatrix(docs, control=list(wordLengths=c(4, 20), bounds = list(global = c(3,28))))
+dtmr
+
+sort(colSums(as.matrix(dtmr)))
+findAssocs(dtmr, "animal", 0.8)
+
 
 ## Construct a network graph (requires pckg "igraph")
 # termMatrix <- sortedWordFreqs%*%t(sortedWordFreqs)
 # Network graph code keeps crashing R, no clue why. I will come back to this.
 
 ## Apply cluster analysis, LDA, and/or sentiment analysis
-
-
-
+x <- findAssocs(tdm, terms = "abortion", corlimit = 0)
+x$abortion
 
 ### 2. Linear Regression
 
 housePrices <- read.csv("Data/HousePrices.csv")
+str(housePrices)
+
+m1 <- lm(Price ~ Bathrooms + Brick, data = housePrices)
+summary(m1)
 
 ## Interpret the meaning of all three beta coefficients.
+# 
+
 ## Discuss the statistical significance of the beta coefficients.
+# All significant yes.
+
 ## What is the value and meaning of the coefficient of determination (R-squared)?
+# R-squared = 0.4095 which means that only about 40% of the price variation can be explained by a linear model which uses only the number of bathrooms and presence of brick as predictors
+
 ## Predict the value of a house price with 2 bathrooms and bricks.
 
 
