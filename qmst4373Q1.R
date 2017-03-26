@@ -67,38 +67,31 @@ wordcloud(names(freqs), freqs, min.freq=750, colors=brewer.pal(6,"Dark2"))
 # termMatrix <- freqs%*%t(freqs)
 # Network graph code keeps crashing R, no clue why. I will come back to this.
 
-## Apply cluster analysis, LDA, and/or sentiment analysis
+## Apply LDA, cluster analysis, and/or sentiment analysis
 
 ## Topic Modeling / LDA
 library(topicmodels)
-# burnin <- 4000 # number of omitted Gibbs iterations at beginning, by default equals 0
-# iter <- 2000 # number of Gibbs iterations, by default equals 2000
-# thin <- 500 # number of omitted in-between Gibbs iterations, by default equals iter
-# seed <-list(2003,5,63,100001,765) # default is NA
-# best <- TRUE # if TRUE only the model with the maximum (posterior) likelihood is returned
-# nstart <- 5 # Number of repeated random starts
-k <- 5 # Number of topics
 
 # Run LDA using Gibbs sampling
-ldaOut <-LDA(dtmr, k, method="Gibbs")
+ldaOut <-LDA(dtmr, k = 5, method="Gibbs")
 
 # Results
 topics(ldaOut)
 terms(ldaOut, 10)
 
-# probabilities associated with each topic assignment
-# rows are documents, columns are topics
+# Probabilities associated with each topic assignment
+# Rows are documents, columns are topics
 topicProbabilities <- as.data.frame(ldaOut@gamma)
-write.csv(topicProbabilities,file=paste("LDAGibbs",k,"TopicProbabilities.csv"))
+row.names(topicProbabilities) <- row.names(dtmr)
 topicProbabilities
 
-#Find relative importance of top 2 topics
-topic1ToTopic2 <- lapply(1:nrow(dtm),function(x)
+# Find relative importance of the top 2 topics according to each document
+# The given topic is n times more likely to be fall under a topic than the next most [probabilistically] relevant topic (as given by column 2 of each list entry)
+
+relativeImportance_1st <- lapply(1:nrow(dtm),function(x)
   sort(topicProbabilities[x,])[k]/sort(topicProbabilities[x,])[k-1])
 
-
-#Find relative importance of second and third most important topics
-topic2ToTopic3 <- lapply(1:nrow(dtm),function(x)
+relativeImportance_2nd <- lapply(1:nrow(dtm),function(x)
   sort(topicProbabilities[x,])[k-1]/sort(topicProbabilities[x,])[k-2])
 
 
