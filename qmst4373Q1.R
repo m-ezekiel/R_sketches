@@ -57,9 +57,9 @@ dtmr
 freqs <- sort(colSums(as.matrix(dtmr)))
 swf_len <- length(freqs)
 top30 <- freqs[(swf_len-29):swf_len]
-barplot(top30, horiz = TRUE, las = 1, col = "lightblue", 
+barplot(top30, horiz = TRUE, las = 1, col = "tan", 
         xlab = "Term Frequencies",
-        main = "Main title")
+        main = "Aristotle Corpus: \n30 most frequent words")
 
 ## Construct a wordcloud (requires pckg "wordcloud")
 wordcloud(names(freqs), freqs, min.freq=750, colors=brewer.pal(6,"Dark2"))
@@ -76,10 +76,10 @@ termMatrix<-tdMatrix%*%t(tdMatrix)
 termMatrix
 
 # # This looks insanely clutterd
-# g <- graph.adjacency(termMatrix, weighted=T, mode="undirected")
-# simplify(graph, remove.multiple = TRUE, remove.loops = TRUE)
-# g <- simplify(g)
-# plot(g)
+g <- graph.adjacency(termMatrix, weighted=T, mode="undirected")
+simplify(graph, remove.multiple = TRUE, remove.loops = TRUE)
+g <- simplify(g)
+plot(g)
 
 
 ## Apply LDA, cluster analysis, and/or sentiment analysis
@@ -91,7 +91,7 @@ library(topicmodels)
 ldaOut <-LDA(dtmr, k = 5, method="Gibbs")
 
 # Results
-topics(ldaOut)
+table(topics(ldaOut))
 terms(ldaOut, 10)
 
 # Probabilities associated with each topic assignment
@@ -127,6 +127,8 @@ for (i in 1:dim(terms_LDA)[2]) {
 # Word associations of the form "topic > term > associations" for k topics and j terms
 str(term_clusters)
 term_clusters
+# "others" is associated with function rather than topic words
+term_clusters[1]
 
 
 ## Sentiment Analysis
@@ -143,7 +145,9 @@ m1 <- lm(Price ~ Bathrooms + Brick, data = housePrices)
 summary(m1)
 
 ## Interpret the meaning of all three beta coefficients.
-# 
+# b0 is the theoretical base price for a house with 1 bathroom
+# b1 signifieas that each additional bathroom adds $23969 to house value.
+# b2 signifies that the presence of brick adds $21312 to house value
 
 ## Discuss the statistical significance of the beta coefficients.
 # All significant yes.
@@ -152,7 +156,9 @@ summary(m1)
 # R-squared = 0.4095 which means that only about 40% of the price variation can be explained by a linear model which uses only the number of bathrooms and presence of brick as predictors
 
 ## Predict the value of a house price with 2 bathrooms and bricks.
-
+# $134,072.70
+newdata <- data.frame(Bathrooms=2, Brick="Yes")
+predict(m1, newdata=newdata,interval="prediction",level=0.99)
 
 
 ### 3.1 Association
@@ -231,3 +237,5 @@ inspect(highConfidenceRule)
 
 # 3.2 Classification
 ## Analyze a decision tree and confusion matrix for CarSeats data.
+
+# Figure 1 provides a decision tree. Based on Figure 1, what can be said about the attributes of stores with high sales?
