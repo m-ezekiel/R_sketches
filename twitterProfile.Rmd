@@ -13,8 +13,8 @@ source('Functions/userTimeline_stats_fXn.R')
 
 ```{r, echo=FALSE}
 # Setup
-user <- "baltaFM"
-n <- 100
+user <- "processingorg"
+n <- 40
 ```
 
 

@@ -7,6 +7,7 @@
 
 library(EBImage)
 
+
 ## Greyscale images
 # Intensity scale from 0 to 1 for amount of white per pixel coordinate
 
@@ -19,6 +20,7 @@ hist(white); white
 grey <- readImage("Data/Color_swatches/grey_127_127_127.jpg")
 hist(grey); grey
 
+
 ## Color images
 
 # The green bar cannot be seen, but is located at 0.0
@@ -29,6 +31,17 @@ hist(red); red
 dblue <- readImage("Data/Color_swatches/blue_0_74_128.jpg")
 hist(dblue); dblue
 
+imageData(dblue)[1:3, 1:6, 1:3]
+74/255
+128/255
+
+blueFrame <- imageData(dblue)[, , 3]
+
+sum(blueFrame) / (100*100)
+
 # There is NOT a 1 to 1 translation in intensity from RGB to Grayscale
 dblue_asGray <- readImage("Data/Color_swatches/dblue_asGrayscale.jpg")
 hist(dblue_asGray); dblue_asGray
+
+
+# What about an image that is half color and half grey?

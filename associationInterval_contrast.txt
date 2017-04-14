@@ -1,0 +1,84 @@
+# Association Interval Comparisons for Gamepad Gaussians Data
+
+J4_global
+  rightJoy   .50
+  positiion  .39
+  rJ, posit  .14
+
+** 16 second intervals **
+
+1:591
+	pos	.65
+	blu	.26
+	rtJ	.23
+
+592:2237
+	rtJ	.81
+	pos	.55
+	rJ,pos	.26
+
+2238:4755
+	rtJ	.37
+	pos	.30
+	rand	.23
+
+
+** 08 second intervals **
+
+1:220
+	pos	.99
+
+221:591
+	pos	.46
+	blu	.41
+	rtJ	.33
+	blu,rtJ	.31
+
+592:770
+	rtJ	.63
+	pos	.48
+	rtJ,pos	.14
+
+771:1655
+		.82
+		.48
+		.31
+
+_:2237
+		.84
+		.37
+		.22
+
+_:2972
+	pos	.54
+	left	.38
+	rtJ	.18
+
+_:3208
+	red	.89
+	size	.43
+	red,sz	.43
+	pos	.38
+	red,pos	.34
+
+_:4755 (end)
+	rtJ	.51
+	rand	.36
+
+
+- - -
+
+V DATA
+
+Global
+	lfJ
+	pos
+	red
+	green
+
+1:47
+	lfJ
+	opa
+	lfJ,opa
+
+
